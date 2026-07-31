@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
@@ -15,11 +15,35 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedLogin = localStorage.getItem('savedLogin');
+    if (savedLogin) {
+      try {
+        const parsed = JSON.parse(savedLogin);
+        if (parsed.email && parsed.password) {
+          setEmail(parsed.email);
+          setPassword(parsed.password);
+          setRememberMe(true);
+        }
+      } catch (e) {
+        console.error("Could not parse saved login");
+      }
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    
+    // Handle Remember Me
+    if (rememberMe) {
+        localStorage.setItem('savedLogin', JSON.stringify({ email, password }));
+    } else {
+        localStorage.removeItem('savedLogin');
+    }
     
     // Mock Admin Login Bypass
     if (!isStudent && email === 'admin@gmail.com' && password === 'admin@12345') {
@@ -119,9 +143,15 @@ export const Login = () => {
             )}
 
             <div className="flex items-center space-x-2 my-4">
-              <input type="checkbox" id="remember" className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600" />
-              <label htmlFor="remember" className="text-sm font-medium leading-none text-gray-600 dark:text-gray-400">
-                Remember me for 30 days
+              <input 
+                type="checkbox" 
+                id="remember" 
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600" 
+              />
+              <label htmlFor="remember" className="text-sm font-medium leading-none text-gray-600 dark:text-gray-400 cursor-pointer">
+                Remember me
               </label>
             </div>
 

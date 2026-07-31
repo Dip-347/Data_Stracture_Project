@@ -1,10 +1,28 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/Button';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const mockUserStr = localStorage.getItem('mockUser');
+  const mockUser = mockUserStr ? JSON.parse(mockUserStr) : null;
+  const isLoggedIn = user || mockUser;
+
+  const handleLogout = async () => {
+      try {
+          if (user) await logout();
+      } catch (e) {
+          console.error(e);
+      } finally {
+          localStorage.removeItem('mockUser');
+          const role = mockUser?.role || 'student';
+          navigate(`/login?role=${role}`);
+      }
+  };
 
   return (
     <nav className="border-b border-gray-200 bg-white/75 backdrop-blur-md sticky top-0 z-50 dark:border-gray-800 dark:bg-gray-950/75">
@@ -18,15 +36,15 @@ export const Navbar = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            {user ? (
+            {isLoggedIn ? (
               <>
-                <Link to="/dashboard">
+                <Link to={mockUser?.role === 'student' ? '/student/dashboard' : '/admin/dashboard'}>
                   <Button variant="ghost" className="gap-2">
                     <User className="h-4 w-4" />
                     Dashboard
                   </Button>
                 </Link>
-                <Button variant="outline" onClick={logout} className="gap-2">
+                <Button variant="outline" onClick={handleLogout} className="gap-2">
                   <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
