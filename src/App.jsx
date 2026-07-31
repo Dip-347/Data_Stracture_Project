@@ -9,6 +9,9 @@ import { Contacts } from './pages/admin/Contacts';
 import { Books } from './pages/admin/Books';
 import { Transactions } from './pages/admin/Transactions';
 import { AdminLayout } from './components/layout/AdminLayout';
+import { StudentLayout } from './components/layout/StudentLayout';
+import { StudentDashboard } from './pages/student/StudentDashboard';
+import { BookBrowsing } from './pages/student/BookBrowsing';
 import { DataProvider } from './context/DataContext';
 
 function App() {
@@ -36,6 +39,12 @@ function App() {
                   {/* Future admin sub-routes */}
                   <Route path="reports" element={<div className="p-8">Reports Page (WIP)</div>} />
                   <Route path="settings" element={<div className="p-8">Settings Page (WIP)</div>} />
+              </Route>
+
+              {/* Student Portal Routes (Phase 7) */}
+              <Route path="/student" element={<StudentLayout />}>
+                  <Route path="dashboard" element={<StudentDashboard />} />
+                  <Route path="books" element={<BookBrowsing />} />
               </Route>
             </Routes>
           </main>

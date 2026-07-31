@@ -25,8 +25,19 @@ export const Login = () => {
     if (!isStudent && email === 'admin@gmail.com' && password === 'admin@12345') {
       setTimeout(() => {
         setIsLoading(false);
+        localStorage.setItem('mockUser', JSON.stringify({ role: 'admin', email }));
         navigate('/admin/dashboard');
       }, 500); // Simulate brief loading
+      return;
+    }
+
+    // Mock Student Login Bypass
+    if (isStudent && email === 'student1@gmail.com' && password === 'student1@12345') {
+      setTimeout(() => {
+        setIsLoading(false);
+        localStorage.setItem('mockUser', JSON.stringify({ role: 'student', email }));
+        navigate('/student/dashboard');
+      }, 500);
       return;
     }
     
