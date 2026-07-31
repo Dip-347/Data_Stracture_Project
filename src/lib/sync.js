@@ -87,7 +87,7 @@ export const syncBooks = async () => {
             });
         } else {
             console.log("No books in database. Loading permanent local fallback...");
-            const books = generateBooksData(200);
+            const books = generateBooksData(50);
             // mock $id for fallback UI keys
             books.forEach((book, idx) => {
                 book.$id = `mock-book-${idx}`;
@@ -98,7 +98,7 @@ export const syncBooks = async () => {
         return true;
     } catch (error) {
         console.error("Error syncing books, loading fallback...", error);
-        const books = generateBooksData(200);
+        const books = generateBooksData(50);
         books.forEach((book, idx) => {
             book.$id = `mock-book-${idx}`;
             booksList.insertTail(book);

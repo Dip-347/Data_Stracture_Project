@@ -4,7 +4,7 @@ import { createBook, deleteBook, updateBook } from '../../lib/api';
 import { Search, Plus, Book, Edit2, Trash2, X, Filter } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
-const CATEGORIES = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Technology', 'History'];
+const DEFAULT_CATEGORIES = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Technology', 'History'];
 
 export const Books = () => {
     const { books, updateStats, isDataLoaded, stats } = useData();
@@ -15,7 +15,7 @@ export const Books = () => {
     const [editingBookId, setEditingBookId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 10;
     
     // Initialize from memory directly
     const [bookList, setBookList] = useState(() => books.getAll());
@@ -25,12 +25,18 @@ export const Books = () => {
         setBookList(books.getAll());
     }, [isDataLoaded, books, stats.booksCount]);
 
+    const dynamicCategories = useMemo(() => {
+        const cats = new Set(bookList.map(b => b.category).filter(Boolean));
+        return ['All', ...Array.from(cats)].sort();
+    }, [bookList]);
+
     const [formData, setFormData] = useState({
         title: '',
         author: '',
         isbn: '',
         category: 'Technology',
-        status: 'Available' // Available or Issued
+        status: 'Available', // Available or Issued
+        copies: 1
     });
 
     const [editFormData, setEditFormData] = useState({
@@ -38,7 +44,8 @@ export const Books = () => {
         author: '',
         isbn: '',
         category: 'Technology',
-        status: 'Available'
+        status: 'Available',
+        copies: 1
     });
 
     const filteredBooks = useMemo(() => {
@@ -65,7 +72,7 @@ export const Books = () => {
             setBookList(books.getAll());
             updateStats();
             setIsModalOpen(false);
-            setFormData({ title: '', author: '', isbn: '', category: 'Technology', status: 'Available' });
+            setFormData({ title: '', author: '', isbn: '', category: 'Technology', status: 'Available', copies: 1 });
         } catch (error) {
             console.error(error);
             alert("Failed to create book.");
@@ -106,7 +113,8 @@ export const Books = () => {
             author: book.author || '',
             isbn: book.isbn || '',
             category: book.category || 'Technology',
-            status: book.status || 'Available'
+            status: book.status || 'Available',
+            copies: book.copies || 1
         });
         setIsEditModalOpen(true);
     };
@@ -160,7 +168,7 @@ export const Books = () => {
                     </div>
                     <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
                         <Filter className="w-4 h-4 text-gray-400 shrink-0" />
-                        {CATEGORIES.map(category => (
+                        {dynamicCategories.map(category => (
                             <button
                                 key={category}
                                 onClick={() => {
@@ -181,7 +189,7 @@ export const Books = () => {
             </div>
 
             {/* Book Grid Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {!isDataLoaded ? (
                     <div className="col-span-full text-center py-12">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
@@ -200,11 +208,11 @@ export const Books = () => {
                                 <Book className="w-16 h-16 text-gray-300 dark:text-gray-600" />
                                 <span className="absolute top-2 right-2">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                        book.status === 'Available' 
+                                        book.status === 'Available' && (book.copies > 0 || book.copies === undefined)
                                         ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
                                         : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
                                     }`}>
-                                        {book.status}
+                                        {book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'Available' : 'Issued/Out'}
                                     </span>
                                 </span>
                             </div>
@@ -214,9 +222,12 @@ export const Books = () => {
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 truncate">by {book.author}</p>
                                 
                                 <div className="mt-auto space-y-3">
-                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500">
-                                        <span>ISBN: {book.isbn}</span>
+                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">Qty: {book.copies || 1}</span>
                                         <span>{book.category}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-400 dark:text-gray-500">
+                                        ISBN: {book.isbn}
                                     </div>
                                     
                                     <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center gap-2">
@@ -307,18 +318,24 @@ export const Books = () => {
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                                                 <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                                    {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                                                    {dynamicCategories.filter(c => c !== 'All').map(cat => (
                                                         <option key={cat} value={cat}>{cat}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial Status</label>
-                                            <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                                <option value="Available">Available</option>
-                                                <option value="Issued">Issued</option>
-                                            </select>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Copies Available</label>
+                                                <input type="number" min="1" value={formData.copies} onChange={e => setFormData({...formData, copies: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial Status</label>
+                                                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                    <option value="Available">Available</option>
+                                                    <option value="Issued">Issued</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -370,18 +387,24 @@ export const Books = () => {
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                                                 <select value={editFormData.category} onChange={e => setEditFormData({...editFormData, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                                    {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                                                    {dynamicCategories.filter(c => c !== 'All').map(cat => (
                                                         <option key={cat} value={cat}>{cat}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial Status</label>
-                                            <select value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                                <option value="Available">Available</option>
-                                                <option value="Issued">Issued</option>
-                                            </select>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Copies Available</label>
+                                                <input type="number" min="1" value={editFormData.copies} onChange={e => setEditFormData({...editFormData, copies: parseInt(e.target.value) || 1})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                                                <select value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                    <option value="Available">Available</option>
+                                                    <option value="Issued">Issued</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

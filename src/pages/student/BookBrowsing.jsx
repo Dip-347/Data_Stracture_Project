@@ -11,13 +11,18 @@ export const BookBrowsing = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [page, setPage] = useState(1);
     const [requestSuccess, setRequestSuccess] = useState(null); // stores book ID that was successfully requested
-    const itemsPerPage = 8;
+    const itemsPerPage = 10;
     
     const [bookList, setBookList] = useState(() => books.getAll());
 
     useEffect(() => {
         setBookList(books.getAll());
     }, [isDataLoaded, books, stats.booksCount]);
+
+    const dynamicCategories = useMemo(() => {
+        const cats = new Set(bookList.map(b => b.category).filter(Boolean));
+        return ['All', ...Array.from(cats)].sort();
+    }, [bookList]);
 
     const filteredBooks = useMemo(() => {
         return bookList.filter(book => {
@@ -70,7 +75,7 @@ export const BookBrowsing = () => {
                 </div>
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
                     <Filter className="w-4 h-4 text-gray-400 shrink-0" />
-                    {CATEGORIES.map(category => (
+                    {dynamicCategories.map(category => (
                         <button
                             key={category}
                             onClick={() => {
@@ -90,7 +95,7 @@ export const BookBrowsing = () => {
             </div>
 
             {/* Book Grid Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {!isDataLoaded ? (
                     <div className="col-span-full text-center py-12">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
@@ -108,11 +113,11 @@ export const BookBrowsing = () => {
                                 <Book className="w-16 h-16 text-gray-300 dark:text-gray-600" />
                                 <span className="absolute top-2 right-2">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                        book.status === 'Available' 
+                                        book.status === 'Available' && (book.copies > 0 || book.copies === undefined)
                                         ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
                                         : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
                                     }`}>
-                                        {book.status}
+                                        {book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'Available' : 'Issued/Out'}
                                     </span>
                                 </span>
                             </div>
@@ -122,7 +127,8 @@ export const BookBrowsing = () => {
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">by {book.author}</p>
                                 
                                 <div className="mt-auto flex flex-col gap-3">
-                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-500">
+                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">Qty: {book.copies || 1}</span>
                                         <span>{book.category}</span>
                                     </div>
                                     
@@ -133,12 +139,12 @@ export const BookBrowsing = () => {
                                     ) : (
                                         <Button 
                                             onClick={() => handleRequestBook(book.$id)}
-                                            disabled={book.status !== 'Available'}
+                                            disabled={book.status !== 'Available' || book.copies === 0}
                                             className="w-full flex justify-center items-center gap-2"
-                                            variant={book.status === 'Available' ? 'primary' : 'secondary'}
+                                            variant={book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'primary' : 'secondary'}
                                         >
                                             <BookmarkPlus className="w-4 h-4" /> 
-                                            {book.status === 'Available' ? 'Request Book' : 'Waitlist'}
+                                            {book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'Request Book' : 'Waitlist'}
                                         </Button>
                                     )}
                                 </div>

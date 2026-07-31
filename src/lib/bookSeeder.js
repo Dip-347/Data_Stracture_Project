@@ -54,7 +54,7 @@ const generateISBN = () => {
     return isbn;
 };
 
-export const generateBooksData = (count = 200) => {
+export const generateBooksData = (count = 50) => {
     const generatedBooks = [];
     
     for (let i = 0; i < count; i++) {
@@ -76,7 +76,8 @@ export const generateBooksData = (count = 200) => {
             author,
             isbn: generateISBN(),
             category,
-            status: 'Available'
+            status: 'Available',
+            copies: Math.floor(Math.random() * 10) + 1 // 1 to 10 copies
         });
     }
     

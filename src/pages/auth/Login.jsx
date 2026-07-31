@@ -62,7 +62,8 @@ export const Login = () => {
     }
 
     // Mock Student Login Bypass
-    if (isStudent && email === 'student1@gmail.com' && password === 'student1@12345') {
+    const isGeneratedStudent = /^student\d+@gmail\.com$/.test(email);
+    if (isStudent && (email === 'student1@gmail.com' || isGeneratedStudent) && password === 'student1@12345') {
       setTimeout(() => {
         setIsLoading(false);
         localStorage.setItem('mockUser', JSON.stringify({ role: 'student', email }));
