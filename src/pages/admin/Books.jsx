@@ -11,6 +11,8 @@ export const Books = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingBookId, setEditingBookId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
     const itemsPerPage = 8;
@@ -29,6 +31,14 @@ export const Books = () => {
         isbn: '',
         category: 'Technology',
         status: 'Available' // Available or Issued
+    });
+
+    const [editFormData, setEditFormData] = useState({
+        title: '',
+        author: '',
+        isbn: '',
+        category: 'Technology',
+        status: 'Available'
     });
 
     const filteredBooks = useMemo(() => {
@@ -86,6 +96,35 @@ export const Books = () => {
         } catch (error) {
             console.error(error);
             alert("Failed to update status.");
+        }
+    };
+
+    const openEditModal = (book) => {
+        setEditingBookId(book.$id);
+        setEditFormData({
+            title: book.title || '',
+            author: book.author || '',
+            isbn: book.isbn || '',
+            category: book.category || 'Technology',
+            status: book.status || 'Available'
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleEdit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            await updateBook(editingBookId, editFormData);
+            setBookList(books.getAll());
+            updateStats();
+            setIsEditModalOpen(false);
+            setEditingBookId(null);
+        } catch (error) {
+            console.error(error);
+            alert("Failed to update book.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -188,7 +227,10 @@ export const Books = () => {
                                             {book.status === 'Available' ? 'Mark Issued' : 'Mark Available'}
                                         </button>
                                         <div className="flex gap-2">
-                                            <button className="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-gray-50 dark:bg-gray-700 rounded-md">
+                                            <button 
+                                                onClick={() => openEditModal(book)}
+                                                className="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-gray-50 dark:bg-gray-700 rounded-md"
+                                            >
                                                 <Edit2 className="w-3.5 h-3.5" />
                                             </button>
                                             <button 
@@ -285,6 +327,69 @@ export const Books = () => {
                                         Add to Catalog
                                     </Button>
                                     <button type="button" onClick={() => setIsModalOpen(false)} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Book Modal */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsEditModalOpen(false)}></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100 dark:border-gray-700">
+                            <form onSubmit={handleEdit}>
+                                <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div className="flex justify-between items-center mb-5">
+                                        <h3 className="text-lg leading-6 font-bold text-gray-900 dark:text-white" id="modal-title">
+                                            Edit Book
+                                        </h3>
+                                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-500">
+                                            <X className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Book Title</label>
+                                            <input type="text" required value={editFormData.title} onChange={e => setEditFormData({...editFormData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Author</label>
+                                            <input type="text" required value={editFormData.author} onChange={e => setEditFormData({...editFormData, author: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ISBN Number</label>
+                                                <input type="text" required value={editFormData.isbn} onChange={e => setEditFormData({...editFormData, isbn: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                                                <select value={editFormData.category} onChange={e => setEditFormData({...editFormData, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                    {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial Status</label>
+                                            <select value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                                <option value="Available">Available</option>
+                                                <option value="Issued">Issued</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 dark:bg-gray-750 px-4 py-3 sm:px-6 flex flex-row-reverse rounded-b-xl border-t border-gray-200 dark:border-gray-700">
+                                    <Button type="submit" isLoading={isLoading} className="ml-3">
+                                        Update Book
+                                    </Button>
+                                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors">
                                         Cancel
                                     </button>
                                 </div>

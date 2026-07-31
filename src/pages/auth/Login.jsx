@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Mail, Lock, UserCog, GraduationCap } from 'lucide-react';
+import { Mail, Lock, UserCog, GraduationCap, X, CheckCircle2 } from 'lucide-react';
 
 export const Login = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +16,12 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  
+  // Forgot Password State
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
 
   useEffect(() => {
     const savedLogin = localStorage.getItem('savedLogin');
@@ -77,6 +83,21 @@ export const Login = () => {
 
   const isStudent = role === 'student';
 
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setIsForgotLoading(true);
+    // Simulate sending recovery email
+    setTimeout(() => {
+        setIsForgotLoading(false);
+        setForgotSuccess(true);
+        setTimeout(() => {
+            setIsForgotPasswordOpen(false);
+            setForgotSuccess(false);
+            setForgotEmail('');
+        }, 3000);
+    }, 1500);
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-gray-950 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-black/50 border border-gray-100 dark:border-gray-800 overflow-hidden">
@@ -122,9 +143,13 @@ export const Login = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium leading-none dark:text-gray-200">Password</label>
-                <a href="#" className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 text-xs">
+                <button 
+                  type="button" 
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 text-xs"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
               <Input
                 type="password"
@@ -161,6 +186,43 @@ export const Login = () => {
           </form>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {isForgotPasswordOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Reset Password</h3>
+                <button onClick={() => setIsForgotPasswordOpen(false)} className="text-gray-400 hover:text-gray-500"><X className="w-5 h-5"/></button>
+            </div>
+            
+            {forgotSuccess ? (
+                <div className="p-8 text-center flex flex-col items-center">
+                    <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Recovery Link Sent!</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Please check {forgotEmail} for instructions to reset your password.</p>
+                </div>
+            ) : (
+                <form onSubmit={handleForgotPassword} className="p-6 space-y-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Enter your email address and we'll send you a link to reset your password.</p>
+                    <Input
+                        label="Email Address"
+                        type="email"
+                        icon={Mail}
+                        placeholder="you@university.edu"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                    />
+                    <div className="pt-2 flex justify-end gap-3">
+                        <Button type="button" onClick={() => setIsForgotPasswordOpen(false)} variant="secondary">Cancel</Button>
+                        <Button type="submit" isLoading={isForgotLoading}>Send Link</Button>
+                    </div>
+                </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

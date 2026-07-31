@@ -8,6 +8,8 @@ import { Students } from './pages/admin/Students';
 import { Contacts } from './pages/admin/Contacts';
 import { Books } from './pages/admin/Books';
 import { Transactions } from './pages/admin/Transactions';
+import { Reports } from './pages/admin/Reports';
+import { Settings } from './pages/admin/Settings';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { StudentLayout } from './components/layout/StudentLayout';
 import { StudentDashboard } from './pages/student/StudentDashboard';
@@ -36,9 +38,9 @@ function App() {
                   <Route path="books" element={<Books />} />
                   <Route path="transactions" element={<Transactions />} />
                   
-                  {/* Future admin sub-routes */}
-                  <Route path="reports" element={<div className="p-8">Reports Page (WIP)</div>} />
-                  <Route path="settings" element={<div className="p-8">Settings Page (WIP)</div>} />
+                  {/* Phase 7 Polish Routes */}
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="settings" element={<Settings />} />
               </Route>
 
               {/* Student Portal Routes (Phase 7) */}

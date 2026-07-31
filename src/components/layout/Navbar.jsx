@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, LogOut, User } from 'lucide-react';
+import { BookOpen, LogOut, User, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useDarkMode } from '../../hooks/useDarkMode';
 import { Button } from '../ui/Button';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -36,6 +38,14 @@ export const Navbar = () => {
           </div>
           
           <div className="flex items-center gap-4">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+
             {isLoggedIn ? (
               <>
                 <Link to={mockUser?.role === 'student' ? '/student/dashboard' : '/admin/dashboard'}>

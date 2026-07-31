@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { seedStudents } from '../lib/seeder';
 import { 
     Users, 
     BookOpen, 
@@ -65,8 +64,7 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, colorClass }) =
 );
 
 export const AdminDashboard = () => {
-    const { isDataLoaded, stats, refreshData, updateStats } = useData();
-    const [isSeeding, setIsSeeding] = useState(false);
+    const { isDataLoaded, stats, refreshData } = useData();
     
     // Compute metrics
     const totalStudents = stats.studentsCount;
@@ -212,33 +210,6 @@ export const AdminDashboard = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
-            
-            {/* Developer Section (Hidden unless needed) */}
-            <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">System Metrics (Phase 2 Validation)</h4>
-                    <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-                        <div>Linked List Nodes (Books): <strong className="text-gray-900 dark:text-white">{stats.booksCount}</strong></div>
-                        <div>Array Length (Students): <strong className="text-gray-900 dark:text-white">{stats.studentsCount}</strong></div>
-                        <div>Array Length (Contacts): <strong className="text-gray-900 dark:text-white">{stats.contactsCount}</strong></div>
-                    </div>
-                </div>
-                <button
-                    onClick={async () => {
-                        if (window.confirm('This will insert 100 mock students into Appwrite. Continue?')) {
-                            setIsSeeding(true);
-                            await seedStudents(100);
-                            updateStats();
-                            setIsSeeding(false);
-                            alert('Seeding complete!');
-                        }
-                    }}
-                    disabled={isSeeding}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                >
-                    {isSeeding ? 'Seeding...' : 'Seed 100 Students'}
-                </button>
             </div>
         </div>
     );
