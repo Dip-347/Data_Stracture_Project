@@ -4,6 +4,7 @@ import { Navbar } from './components/layout/Navbar';
 import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/auth/Login';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminLayout } from './components/layout/AdminLayout';
 import { DataProvider } from './context/DataContext';
 
 function App() {
@@ -19,7 +20,17 @@ function App() {
               <Route path="/login" element={<Login />} />
               {/* Future Dashboard Route will go here */}
               <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              
+              <Route path="/admin" element={<AdminLayout />}>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  {/* Future admin sub-routes */}
+                  <Route path="students" element={<div className="p-8">Students Page (WIP)</div>} />
+                  <Route path="books" element={<div className="p-8">Books Page (WIP)</div>} />
+                  <Route path="contacts" element={<div className="p-8">Contacts Page (WIP)</div>} />
+                  <Route path="transactions" element={<div className="p-8">Transactions Page (WIP)</div>} />
+                  <Route path="reports" element={<div className="p-8">Reports Page (WIP)</div>} />
+                  <Route path="settings" element={<div className="p-8">Settings Page (WIP)</div>} />
+              </Route>
             </Routes>
           </main>
         </div>
