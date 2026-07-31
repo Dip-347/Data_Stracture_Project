@@ -21,6 +21,15 @@ export const Login = () => {
     setIsLoading(true);
     setError('');
     
+    // Mock Admin Login Bypass
+    if (!isStudent && email === 'admin@gmail.com' && password === 'admin@12345') {
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate('/admin/dashboard');
+      }, 500); // Simulate brief loading
+      return;
+    }
+    
     try {
       await login(email, password);
       navigate('/dashboard');
