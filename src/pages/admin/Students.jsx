@@ -5,21 +5,20 @@ import { Search, Plus, MoreVertical, Edit2, Trash2, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 export const Students = () => {
-    const { students, updateStats, isDataLoaded } = useData();
+    const { students, updateStats, isDataLoaded, stats } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
     const rowsPerPage = 10;
     
-    // Using internal state to force re-render when the array updates
-    const [studentList, setStudentList] = useState([]);
+    // Initialize state directly from memory to prevent empty tables on mount
+    const [studentList, setStudentList] = useState(() => students.getAll());
 
     useEffect(() => {
-        if (isDataLoaded) {
-            setStudentList(students.getAll());
-        }
-    }, [isDataLoaded, students]);
+        // Sync with memory whenever data loaded status or stats change
+        setStudentList(students.getAll());
+    }, [isDataLoaded, students, stats.studentsCount]);
 
     const [formData, setFormData] = useState({
         studentId: '',
@@ -113,13 +112,14 @@ export const Students = () => {
                                 <th scope="col" className="px-6 py-4">Department</th>
                                 <th scope="col" className="px-6 py-4">Semester</th>
                                 <th scope="col" className="px-6 py-4">Email</th>
+                                <th scope="col" className="px-6 py-4">Phone</th>
                                 <th scope="col" className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {paginatedStudents.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                         No students found.
                                     </td>
                                 </tr>
@@ -131,6 +131,7 @@ export const Students = () => {
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{student.department}</td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{student.semester}</td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{student.email}</td>
+                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{student.phone || 'N/A'}</td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button className="p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">

@@ -6,6 +6,7 @@ import { Login } from './pages/auth/Login';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Students } from './pages/admin/Students';
 import { Contacts } from './pages/admin/Contacts';
+import { Books } from './pages/admin/Books';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { DataProvider } from './context/DataContext';
 
@@ -25,12 +26,12 @@ function App() {
               
               <Route path="/admin" element={<AdminLayout />}>
                   <Route path="dashboard" element={<AdminDashboard />} />
-                  {/* Phase 4 Routes */}
+                  {/* Phase 4 & 5 Routes */}
                   <Route path="students" element={<Students />} />
                   <Route path="contacts" element={<Contacts />} />
+                  <Route path="books" element={<Books />} />
                   
                   {/* Future admin sub-routes */}
-                  <Route path="books" element={<div className="p-8">Books Page (WIP)</div>} />
                   <Route path="transactions" element={<div className="p-8">Transactions Page (WIP)</div>} />
                   <Route path="reports" element={<div className="p-8">Reports Page (WIP)</div>} />
                   <Route path="settings" element={<div className="p-8">Settings Page (WIP)</div>} />

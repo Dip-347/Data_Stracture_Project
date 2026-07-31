@@ -3,15 +3,13 @@ import { useData } from '../../context/DataContext';
 import { Search, Phone, Mail, User } from 'lucide-react';
 
 export const Contacts = () => {
-    const { contacts, isDataLoaded } = useData();
+    const { contacts, isDataLoaded, stats } = useData();
     const [searchTerm, setSearchTerm] = useState('');
-    const [contactList, setContactList] = useState([]);
+    const [contactList, setContactList] = useState(() => contacts.getAll());
 
     useEffect(() => {
-        if (isDataLoaded) {
-            setContactList(contacts.getAll());
-        }
-    }, [isDataLoaded, contacts]);
+        setContactList(contacts.getAll());
+    }, [isDataLoaded, contacts, stats.contactsCount]);
 
     const filteredContacts = useMemo(() => {
         return contactList.filter(contact => 

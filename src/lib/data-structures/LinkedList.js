@@ -118,6 +118,18 @@ class LinkedList {
         return null;
     }
     
+    updateById(id, newData) {
+        let current = this.head;
+        while (current) {
+            if (current.data.$id === id || current.data.id === id) {
+                current.data = { ...current.data, ...newData };
+                return current.data;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+    
     searchAll(predicate) {
         let current = this.head;
         const results = [];

@@ -1,6 +1,6 @@
 import { ID } from 'appwrite';
 import { databases, appwriteConfig } from './appwrite';
-import { studentsArray, contactsArray } from './sync';
+import { studentsArray, contactsArray, booksList } from './sync';
 
 // --- Student API Operations ---
 
@@ -108,3 +108,56 @@ export const deleteContact = async (documentId) => {
         throw error;
     }
 };
+
+// --- Book API Operations ---
+
+export const createBook = async (bookData) => {
+    try {
+        const document = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.booksCollectionId,
+            ID.unique(),
+            bookData
+        );
+        
+        booksList.insertTail(document);
+        return document;
+    } catch (error) {
+        console.error("Error creating book:", error);
+        throw error;
+    }
+};
+
+export const updateBook = async (documentId, updateData) => {
+    try {
+        const document = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.booksCollectionId,
+            documentId,
+            updateData
+        );
+        
+        booksList.updateById(documentId, document);
+        return document;
+    } catch (error) {
+        console.error("Error updating book:", error);
+        throw error;
+    }
+};
+
+export const deleteBook = async (documentId) => {
+    try {
+        await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.booksCollectionId,
+            documentId
+        );
+        
+        booksList.deleteById(documentId);
+        return true;
+    } catch (error) {
+        console.error("Error deleting book:", error);
+        throw error;
+    }
+};
+
