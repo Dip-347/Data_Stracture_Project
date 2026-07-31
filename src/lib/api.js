@@ -1,6 +1,6 @@
 import { ID } from 'appwrite';
 import { databases, appwriteConfig } from './appwrite';
-import { studentsArray, contactsArray, booksList } from './sync';
+import { studentsArray, contactsArray, booksList, transactionsArray } from './sync';
 
 // --- Student API Operations ---
 
@@ -157,6 +157,60 @@ export const deleteBook = async (documentId) => {
         return true;
     } catch (error) {
         console.error("Error deleting book:", error);
+        throw error;
+    }
+};
+
+// --- Transaction API Operations ---
+
+export const createTransaction = async (transactionData) => {
+    try {
+        const document = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.transactionsCollectionId,
+            ID.unique(),
+            transactionData
+        );
+        
+        transactionsArray.insert(document);
+        return document;
+    } catch (error) {
+        console.error("Error creating transaction:", error);
+        throw error;
+    }
+};
+
+export const updateTransaction = async (documentId, updateData) => {
+    try {
+        const document = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.transactionsCollectionId,
+            documentId,
+            updateData
+        );
+        
+        transactionsArray.updateById(documentId, document);
+        return document;
+    } catch (error) {
+        console.error("Error updating transaction:", error);
+        throw error;
+    }
+};
+
+// Clear all dues for a specific student
+export const clearStudentDue = async (studentId) => {
+    try {
+        // Find all unpaid transactions for this student
+        const studentTransactions = transactionsArray.searchAll(
+            t => t.studentId === studentId && (t.fine || 0) > 0 && !t.fineCleared
+        );
+
+        for (const t of studentTransactions) {
+            await updateTransaction(t.$id, { fineCleared: true });
+        }
+        return true;
+    } catch (error) {
+        console.error("Error clearing dues:", error);
         throw error;
     }
 };

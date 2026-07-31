@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { syncAllData, studentsArray, contactsArray, booksList } from '../lib/sync';
+import { syncAllData, studentsArray, contactsArray, booksList, transactionsArray } from '../lib/sync';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -10,7 +10,8 @@ export const DataProvider = ({ children }) => {
     const [stats, setStats] = useState({
         studentsCount: 0,
         contactsCount: 0,
-        booksCount: 0
+        booksCount: 0,
+        transactionsCount: 0
     });
     const { user } = useAuth();
 
@@ -18,7 +19,8 @@ export const DataProvider = ({ children }) => {
         setStats({
             studentsCount: studentsArray.getSize(),
             contactsCount: contactsArray.getSize(),
-            booksCount: booksList.getSize()
+            booksCount: booksList.getSize(),
+            transactionsCount: transactionsArray.getSize()
         });
     };
 
@@ -49,6 +51,7 @@ export const DataProvider = ({ children }) => {
         students: studentsArray,
         contacts: contactsArray,
         books: booksList,
+        transactions: transactionsArray,
         refreshData: loadData,
         updateStats // call this after manual insertions to update the UI
     };

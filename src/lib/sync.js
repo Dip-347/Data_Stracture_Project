@@ -6,6 +6,7 @@ import LinkedList from './data-structures/LinkedList';
 export const studentsArray = new DynamicArray();
 export const contactsArray = new DynamicArray();
 export const booksList = new LinkedList();
+export const transactionsArray = new DynamicArray();
 
 /**
  * Syncs students from Appwrite to the memory array
@@ -74,12 +75,35 @@ export const syncBooks = async () => {
 };
 
 /**
+ * Syncs transactions from Appwrite to the memory array
+ */
+export const syncTransactions = async () => {
+    try {
+        transactionsArray.clear();
+        const response = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.transactionsCollectionId
+        );
+        
+        response.documents.forEach(transaction => {
+            transactionsArray.insert(transaction);
+        });
+        
+        return true;
+    } catch (error) {
+        console.error("Error syncing transactions:", error);
+        return false;
+    }
+};
+
+/**
  * Sync all data
  */
 export const syncAllData = async () => {
     await Promise.all([
         syncStudents(),
         syncContacts(),
-        syncBooks()
+        syncBooks(),
+        syncTransactions()
     ]);
 };
