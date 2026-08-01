@@ -1,35 +1,25 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { BookOpen, Calendar, Bell, User, CheckCircle2, Clock, XCircle, Key } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
+import { BookOpen, Calendar, Bell, User } from 'lucide-react';
 
 export const StudentDashboard = () => {
-    const { students, transactions, books, requests, isDataLoaded, stats, verifyOTP } = useData();
+    const { students, transactions, books, isDataLoaded, stats } = useData();
     const [mockUser] = useState(() => JSON.parse(localStorage.getItem('mockUser') || '{}'));
     
     // Derived state for the logged-in student
     const [studentList, setStudentList] = useState(() => students.getAll());
     const [transactionList, setTransactionList] = useState(() => transactions.getAll());
     const [bookList, setBookList] = useState(() => books.getAll());
-    const [requestList, setRequestList] = useState(() => requests.getAll());
-    const [otpInputs, setOtpInputs] = useState({});
 
     useEffect(() => {
         setStudentList(students.getAll());
         setTransactionList(transactions.getAll());
         setBookList(books.getAll());
-        setRequestList(requests.getAll());
-    }, [isDataLoaded, students, transactions, books, requests, stats]);
+    }, [isDataLoaded, students, transactions, books, stats.transactionsCount]);
 
     const myProfile = useMemo(() => {
         return studentList.find(s => s.email === mockUser.email) || null;
     }, [studentList, mockUser.email]);
-
-    const myRequests = useMemo(() => {
-        return requestList
-            .filter(r => r.studentEmail === mockUser.email)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }, [requestList, mockUser.email]);
 
     const myTransactions = useMemo(() => {
         if (!myProfile) return [];
@@ -58,20 +48,6 @@ export const StudentDashboard = () => {
     const nextDueDate = nextDueTransaction 
         ? new Date(new Date(nextDueTransaction.issueDate).getTime() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString()
         : 'N/A';
-
-    const handleVerifyOtp = (requestId) => {
-        const otp = otpInputs[requestId];
-        if (!otp || otp.length !== 4) {
-            alert("Please enter a valid 4-digit OTP.");
-            return;
-        }
-        const success = verifyOTP(requestId, otp);
-        if (success) {
-            alert("OTP Verified Successfully! Handover completed.");
-        } else {
-            alert("Invalid OTP. Please try again.");
-        }
-    };
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -117,66 +93,6 @@ export const StudentDashboard = () => {
                         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Notifications</p>
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white">0</h3>
                     </div>
-                </div>
-            </div>
-
-            {/* Book Requests History */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Book Requests</h2>
-                </div>
-                <div className="p-6">
-                    {myRequests.length === 0 ? (
-                        <div className="text-center py-8">
-                            <Clock className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                            <p className="text-gray-500 dark:text-gray-400 font-medium">No requests made yet.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {myRequests.map(req => (
-                                <div key={req.$id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50 dark:bg-gray-800/50">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${
-                                                req.status === 'Pending' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
-                                                req.status === 'Accepted' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                req.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                            }`}>
-                                                {req.status === 'Pending' && <Clock className="w-3 h-3" />}
-                                                {req.status === 'Accepted' && <Key className="w-3 h-3" />}
-                                                {req.status === 'Completed' && <CheckCircle2 className="w-3 h-3" />}
-                                                {req.status === 'Rejected' && <XCircle className="w-3 h-3" />}
-                                                {req.status}
-                                            </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                Requested on {new Date(req.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                                            {req.books.map(b => (
-                                                <li key={b.bookId}>• {b.title} <span className="text-gray-400">(Qty: {b.qty})</span></li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    
-                                    {req.status === 'Accepted' && (
-                                        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 w-full sm:w-auto">
-                                            <input 
-                                                type="text" 
-                                                maxLength="4"
-                                                placeholder="Enter 4-digit OTP"
-                                                className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm dark:bg-gray-700 dark:text-white"
-                                                value={otpInputs[req.$id] || ''}
-                                                onChange={(e) => setOtpInputs({ ...otpInputs, [req.$id]: e.target.value.replace(/\D/g, '') })}
-                                            />
-                                            <Button onClick={() => handleVerifyOtp(req.$id)} size="sm">Verify</Button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
 

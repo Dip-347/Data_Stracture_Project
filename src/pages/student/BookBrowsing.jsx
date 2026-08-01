@@ -73,7 +73,12 @@ export const BookBrowsing = () => {
 
     const handleSubmitCart = () => {
         if (cart.length === 0) return;
-        submitRequest(user?.email || 'student@example.com', cart);
+        
+        const mockUserStr = localStorage.getItem('mockUser');
+        const mockUser = mockUserStr ? JSON.parse(mockUserStr) : null;
+        const studentEmail = user?.email || mockUser?.email || 'student@example.com';
+        
+        submitRequest(studentEmail, cart);
         setCart([]);
         setIsCartOpen(false);
         alert("Your request has been submitted successfully!");

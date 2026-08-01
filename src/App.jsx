@@ -15,6 +15,7 @@ import { AdminLayout } from './components/layout/AdminLayout';
 import { StudentLayout } from './components/layout/StudentLayout';
 import { StudentDashboard } from './pages/student/StudentDashboard';
 import { BookBrowsing } from './pages/student/BookBrowsing';
+import { RequestHistory } from './pages/student/RequestHistory';
 import { DataProvider } from './context/DataContext';
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
               <Route path="/student" element={<StudentLayout />}>
                   <Route path="dashboard" element={<StudentDashboard />} />
                   <Route path="books" element={<BookBrowsing />} />
+                  <Route path="requests" element={<RequestHistory />} />
               </Route>
             </Routes>
           </main>

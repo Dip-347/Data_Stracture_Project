@@ -1,10 +1,11 @@
 import React from 'react';
 import { Outlet, Navigate, NavLink, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Library, User } from 'lucide-react';
+import { LogOut, LayoutDashboard, Library, User, Clock } from 'lucide-react';
 
 const navItems = [
     { name: 'My Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
     { name: 'Browse Books', path: '/student/books', icon: Library },
+    { name: 'Request History', path: '/student/requests', icon: Clock },
 ];
 
 export const StudentLayout = () => {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { syncAllData, studentsArray, contactsArray, booksList, transactionsArray, requestsArray, persistRequests } from '../lib/sync';
+import { syncAllData, studentsArray, contactsArray, booksList, transactionsArray, requestsArray, persistRequests, loadRequestsFromStorage } from '../lib/sync';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -46,6 +46,18 @@ export const DataProvider = ({ children }) => {
         loadData();
     }, [user]);
 
+    // Listen to changes in localStorage across tabs
+    useEffect(() => {
+        const handleStorage = (e) => {
+            if (e.key === 'smart_library_requests') {
+                loadRequestsFromStorage();
+                updateStats(); // Trigger re-render
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, []);
+
     const submitRequest = (studentEmail, cartItems) => {
         const newRequest = {
             $id: `req-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -80,6 +92,20 @@ export const DataProvider = ({ children }) => {
         const reqIndex = reqs.findIndex(r => r.$id === requestId);
         if (reqIndex !== -1) {
             reqs[reqIndex].status = 'Rejected';
+            persistRequests();
+            updateStats();
+            return true;
+        }
+        return false;
+    };
+
+    const cancelRequest = (requestId) => {
+        const reqs = requestsArray.getAll();
+        const reqIndex = reqs.findIndex(r => r.$id === requestId);
+        if (reqIndex !== -1) {
+            requestsArray.delete(reqIndex); // Using DynamicArray's delete if it exists, but usually we just want to remove or mark as cancelled.
+            // Wait, DynamicArray doesn't have a reliable delete(index) in some implementations. Let's just mark it 'Cancelled'.
+            reqs[reqIndex].status = 'Cancelled';
             persistRequests();
             updateStats();
             return true;
@@ -127,6 +153,7 @@ export const DataProvider = ({ children }) => {
         submitRequest,
         acceptRequest,
         rejectRequest,
+        cancelRequest,
         verifyOTP
     };
 

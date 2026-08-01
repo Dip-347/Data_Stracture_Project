@@ -11,16 +11,21 @@ export const booksList = new LinkedList();
 export const transactionsArray = new DynamicArray();
 export const requestsArray = new DynamicArray();
 
-// Initialize requests from local storage if they exist
-try {
-    const savedRequests = localStorage.getItem('library_requests');
-    if (savedRequests) {
-        const parsed = JSON.parse(savedRequests);
-        parsed.forEach(req => requestsArray.insert(req));
+export const loadRequestsFromStorage = () => {
+    try {
+        requestsArray.clear();
+        const savedRequests = localStorage.getItem('smart_library_requests');
+        if (savedRequests) {
+            const parsed = JSON.parse(savedRequests);
+            parsed.forEach(req => requestsArray.insert(req));
+        }
+    } catch (e) {
+        console.error("Failed to load requests from local storage", e);
     }
-} catch (e) {
-    console.error("Failed to load requests from local storage", e);
-}
+};
+
+// Initialize on load
+loadRequestsFromStorage();
 
 /**
  * Syncs students from Appwrite to the memory array
@@ -146,7 +151,7 @@ export const syncTransactions = async () => {
  */
 export const persistRequests = () => {
     try {
-        localStorage.setItem('library_requests', JSON.stringify(requestsArray.getAll()));
+        localStorage.setItem('smart_library_requests', JSON.stringify(requestsArray.getAll()));
     } catch (e) {
         console.error("Failed to save requests", e);
     }
@@ -156,6 +161,7 @@ export const persistRequests = () => {
  * Sync all data
  */
 export const syncAllData = async () => {
+    loadRequestsFromStorage();
     await Promise.all([
         syncStudents(),
         syncContacts(),
