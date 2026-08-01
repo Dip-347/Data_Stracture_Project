@@ -10,6 +10,7 @@ import { Books } from './pages/admin/Books';
 import { Transactions } from './pages/admin/Transactions';
 import { Reports } from './pages/admin/Reports';
 import { Settings } from './pages/admin/Settings';
+import { Requests } from './pages/admin/Requests';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { StudentLayout } from './components/layout/StudentLayout';
 import { StudentDashboard } from './pages/student/StudentDashboard';
@@ -36,6 +37,7 @@ function App() {
                   <Route path="students" element={<Students />} />
                   <Route path="contacts" element={<Contacts />} />
                   <Route path="books" element={<Books />} />
+                  <Route path="requests" element={<Requests />} />
                   <Route path="transactions" element={<Transactions />} />
                   
                   {/* Phase 7 Polish Routes */}

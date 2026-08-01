@@ -1,16 +1,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
-import { Search, Book, Filter, BookmarkPlus, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { Search, Book, Filter, BookmarkPlus, ShoppingCart, X, Minus, Plus, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 const CATEGORIES = ['All', 'Fiction', 'Non-Fiction', 'Science', 'Technology', 'History'];
 
 export const BookBrowsing = () => {
-    const { books, isDataLoaded, stats } = useData();
+    const { books, isDataLoaded, stats, submitRequest } = useData();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [page, setPage] = useState(1);
-    const [requestSuccess, setRequestSuccess] = useState(null); // stores book ID that was successfully requested
+    
+    // Cart State
+    const [cart, setCart] = useState([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    
     const itemsPerPage = 10;
     
     const [bookList, setBookList] = useState(() => books.getAll());
@@ -39,12 +45,38 @@ export const BookBrowsing = () => {
         return filteredBooks.slice(start, start + itemsPerPage);
     }, [filteredBooks, page]);
 
-    const handleRequestBook = (bookId) => {
-        // Simulate a backend request for the book
-        setTimeout(() => {
-            setRequestSuccess(bookId);
-            setTimeout(() => setRequestSuccess(null), 3000); // clear success message after 3s
-        }, 500);
+    const handleAddToCart = (book) => {
+        const existing = cart.find(item => item.bookId === book.$id);
+        const maxCopies = book.copies || 1;
+        if (existing) {
+            if (existing.qty < maxCopies) {
+                setCart(cart.map(item => item.bookId === book.$id ? { ...item, qty: item.qty + 1 } : item));
+            }
+        } else {
+            setCart([...cart, { bookId: book.$id, title: book.title, qty: 1, maxCopies }]);
+        }
+    };
+
+    const handleUpdateCartQty = (bookId, delta) => {
+        setCart(cart.map(item => {
+            if (item.bookId === bookId) {
+                const newQty = Math.max(1, Math.min(item.maxCopies, item.qty + delta));
+                return { ...item, qty: newQty };
+            }
+            return item;
+        }));
+    };
+
+    const handleRemoveFromCart = (bookId) => {
+        setCart(cart.filter(item => item.bookId !== bookId));
+    };
+
+    const handleSubmitCart = () => {
+        if (cart.length === 0) return;
+        submitRequest(user?.email || 'student@example.com', cart);
+        setCart([]);
+        setIsCartOpen(false);
+        alert("Your request has been submitted successfully!");
     };
 
     return (
@@ -132,19 +164,19 @@ export const BookBrowsing = () => {
                                         <span>{book.category}</span>
                                     </div>
                                     
-                                    {requestSuccess === book.$id ? (
-                                        <div className="w-full flex items-center justify-center gap-2 py-2 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-sm font-medium border border-green-200 dark:border-green-800">
-                                            <CheckCircle2 className="w-4 h-4" /> Requested
+                                    {cart.find(c => c.bookId === book.$id) ? (
+                                        <div className="w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-md text-sm font-medium border border-indigo-200 dark:border-indigo-800">
+                                            <CheckCircle2 className="w-4 h-4" /> Added to Cart
                                         </div>
                                     ) : (
                                         <Button 
-                                            onClick={() => handleRequestBook(book.$id)}
+                                            onClick={() => handleAddToCart(book)}
                                             disabled={book.status !== 'Available' || book.copies === 0}
                                             className="w-full flex justify-center items-center gap-2"
                                             variant={book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'primary' : 'secondary'}
                                         >
                                             <BookmarkPlus className="w-4 h-4" /> 
-                                            {book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'Request Book' : 'Waitlist'}
+                                            {book.status === 'Available' && (book.copies > 0 || book.copies === undefined) ? 'Add to Cart' : 'Waitlist'}
                                         </Button>
                                     )}
                                 </div>
@@ -175,6 +207,80 @@ export const BookBrowsing = () => {
                         >
                             Next
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Floating Cart Button */}
+            {cart.length > 0 && (
+                <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="fixed bottom-8 right-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors z-40 flex items-center justify-center"
+                >
+                    <ShoppingCart className="w-6 h-6" />
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-gray-900">
+                        {cart.length}
+                    </span>
+                </button>
+            )}
+
+            {/* Cart Slide-over */}
+            {isCartOpen && (
+                <div className="fixed inset-0 z-50 overflow-hidden">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsCartOpen(false)} />
+                    <div className="fixed inset-y-0 right-0 max-w-md w-full flex">
+                        <div className="w-full bg-white dark:bg-gray-800 shadow-xl flex flex-col">
+                            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <ShoppingCart className="w-6 h-6" />
+                                    Your Cart
+                                </h2>
+                                <button onClick={() => setIsCartOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {cart.length === 0 ? (
+                                    <p className="text-center text-gray-500 dark:text-gray-400 mt-10">Your cart is empty.</p>
+                                ) : (
+                                    cart.map(item => (
+                                        <div key={item.bookId} className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                            <div className="flex justify-between items-start gap-4">
+                                                <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">{item.title}</h4>
+                                                <button onClick={() => handleRemoveFromCart(item.bookId)} className="text-red-500 hover:text-red-700">
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">Qty:</span>
+                                                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600 px-2 py-1">
+                                                    <button onClick={() => handleUpdateCartQty(item.bookId, -1)} disabled={item.qty <= 1} className="text-gray-500 hover:text-gray-700 disabled:opacity-30">
+                                                        <Minus className="w-3 h-3" />
+                                                    </button>
+                                                    <span className="text-sm font-medium w-4 text-center dark:text-white">{item.qty}</span>
+                                                    <button onClick={() => handleUpdateCartQty(item.bookId, 1)} disabled={item.qty >= item.maxCopies} className="text-gray-500 hover:text-gray-700 disabled:opacity-30">
+                                                        <Plus className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                                <span className="text-xs text-gray-400">(Max: {item.maxCopies})</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            
+                            {cart.length > 0 && (
+                                <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
+                                    <Button onClick={handleSubmitCart} className="w-full py-3 text-lg font-medium">
+                                        Final Confirmation
+                                    </Button>
+                                    <Button onClick={() => setIsCartOpen(false)} variant="secondary" className="w-full mt-3 py-3">
+                                        Cancel
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

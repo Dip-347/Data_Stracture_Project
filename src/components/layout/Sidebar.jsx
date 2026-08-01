@@ -16,6 +16,7 @@ const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Students', path: '/admin/students', icon: Users },
     { name: 'Books', path: '/admin/books', icon: BookOpen },
+    { name: 'Requested Books', path: '/admin/requests', icon: BookOpen },
     { name: 'Contacts', path: '/admin/contacts', icon: Contact },
     { name: 'Transactions', path: '/admin/transactions', icon: ArrowRightLeft },
     { name: 'Reports', path: '/admin/reports', icon: BarChart3 },

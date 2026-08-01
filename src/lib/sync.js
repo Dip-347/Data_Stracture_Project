@@ -9,6 +9,18 @@ export const studentsArray = new DynamicArray();
 export const contactsArray = new DynamicArray();
 export const booksList = new LinkedList();
 export const transactionsArray = new DynamicArray();
+export const requestsArray = new DynamicArray();
+
+// Initialize requests from local storage if they exist
+try {
+    const savedRequests = localStorage.getItem('library_requests');
+    if (savedRequests) {
+        const parsed = JSON.parse(savedRequests);
+        parsed.forEach(req => requestsArray.insert(req));
+    }
+} catch (e) {
+    console.error("Failed to load requests from local storage", e);
+}
 
 /**
  * Syncs students from Appwrite to the memory array
@@ -126,6 +138,17 @@ export const syncTransactions = async () => {
     } catch (error) {
         console.error("Error syncing transactions:", error);
         return false;
+    }
+};
+
+/**
+ * Save requests to localStorage (called by DataContext when modifying)
+ */
+export const persistRequests = () => {
+    try {
+        localStorage.setItem('library_requests', JSON.stringify(requestsArray.getAll()));
+    } catch (e) {
+        console.error("Failed to save requests", e);
     }
 };
 
